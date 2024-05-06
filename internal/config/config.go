@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Env        string `yaml:"env" env-default:"local"`
 	HTTPServer `yaml:"http_server"`
+	Database   `yaml:"database"`
 }
 
 type HTTPServer struct {
@@ -18,6 +19,14 @@ type HTTPServer struct {
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
 	User        string        `yaml:"user" env-required:"true"`
 	Password    string        `yaml:"password" env-required:"true" env:"HTTP_SERVER_PASSWORD"`
+}
+
+type Database struct {
+	PostgresHost     string `env:"POSTGRES_HOST" env-default:"127.0.0.1"`
+	PostgresPort     string `env:"POSTGRES_PORT" env-default:"5432"`
+	PostgresUser     string `env:"POSTGRES_USER" env-default:"postgres"`
+	PostgresPassword string `env:"POSTGRES_PASSWORD" env-required:"true"`
+	PostgresDatabase string `env:"POSTGRES_DATABASE" env-default:"postgres"`
 }
 
 func MustLoad() *Config {
