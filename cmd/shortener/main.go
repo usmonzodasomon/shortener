@@ -1,11 +1,19 @@
 package main
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"github.com/usmonzodasomon/shortener/internal/config"
 	"github.com/usmonzodasomon/shortener/pkg/logger"
 	"github.com/usmonzodasomon/shortener/pkg/postgres"
+	"github.com/usmonzodasomon/shortener/pkg/server"
 	"log/slog"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
@@ -26,4 +34,32 @@ func main() {
 
 	logger.Info("connected to database")
 
+	//DI
+
+	logger.Info("starting server", slog.String("address", cfg.Address))
+
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	srv := server.Server{}
+	go func() {
+		if err := srv.Run(*cfg, nil); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Error("failed to start server")
+		}
+	}()
+
+	logger.Info(fmt.Sprintf("server started on %s", cfg.Address))
+
+	<-done
+	logger.Info("stopping server")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.Error("failed to stop server", slog.String("error", err.Error()))
+		return
+	}
+
+	logger.Info("server stopped")
 }
