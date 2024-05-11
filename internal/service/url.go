@@ -29,3 +29,18 @@ func (s *UrlService) SaveURL(url string) error {
 	}
 	return nil
 }
+
+func (s *UrlService) GetURL(shortUrl string) (string, error) {
+	url, err := s.UrlRepository.GetURL(shortUrl)
+	if err != nil {
+		return "", err
+	}
+	return url, nil
+}
+
+func (s *UrlService) IncrementCount(shortUrl string) error {
+	if err := s.UrlRepository.IncrementCount(shortUrl); err != nil {
+		return err
+	}
+	return nil
+}
