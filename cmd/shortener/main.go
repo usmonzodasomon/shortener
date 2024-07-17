@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/go-chi/chi/v5"
 	"github.com/usmonzodasomon/shortener/internal/config"
+	"github.com/usmonzodasomon/shortener/internal/routes"
 	"github.com/usmonzodasomon/shortener/pkg/logger"
 	"github.com/usmonzodasomon/shortener/pkg/postgres"
 	"github.com/usmonzodasomon/shortener/pkg/server"
@@ -34,16 +36,17 @@ func main() {
 
 	logger.Info("connected to database")
 
-	//DI
-
 	logger.Info("starting server", slog.String("address", cfg.Address))
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
+	r := chi.NewRouter()
+	routes.SetUpRoutes(r, connection)
+
 	srv := server.Server{}
 	go func() {
-		if err := srv.Run(*cfg, nil); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := srv.Run(*cfg, r); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error("failed to start server")
 		}
 	}()

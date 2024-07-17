@@ -9,12 +9,12 @@ type UrlRepositoryI interface {
 }
 
 type UrlService struct {
-	UrlRepository UrlRepositoryI
+	repo UrlRepositoryI
 }
 
 func NewUrlService(repo UrlRepositoryI) *UrlService {
 	return &UrlService{
-		UrlRepository: repo,
+		repo: repo,
 	}
 }
 
@@ -22,16 +22,16 @@ const (
 	shortUrlLength = 6
 )
 
-func (s *UrlService) SaveURL(url string) error {
+func (s *UrlService) SaveURL(url string) (string, error) {
 	shortUrl := random.NewString(shortUrlLength)
-	if err := s.UrlRepository.SaveURL(url, shortUrl); err != nil {
-		return err
+	if err := s.repo.SaveURL(url, shortUrl); err != nil {
+		return "", err
 	}
-	return nil
+	return shortUrl, nil
 }
 
 func (s *UrlService) GetURL(shortUrl string) (string, error) {
-	url, err := s.UrlRepository.GetURL(shortUrl)
+	url, err := s.repo.GetURL(shortUrl)
 	if err != nil {
 		return "", err
 	}
@@ -39,7 +39,7 @@ func (s *UrlService) GetURL(shortUrl string) (string, error) {
 }
 
 func (s *UrlService) IncrementCount(shortUrl string) error {
-	if err := s.UrlRepository.IncrementCount(shortUrl); err != nil {
+	if err := s.repo.IncrementCount(shortUrl); err != nil {
 		return err
 	}
 	return nil
