@@ -20,7 +20,7 @@ import (
 
 func main() {
 	cfg := config.MustLoad()
-	logger := logger.Logger(*cfg)
+	logger := logger.Logger(cfg.Env)
 
 	logger.Info("starting url-shortener",
 		slog.String("env", cfg.Env))
@@ -42,7 +42,7 @@ func main() {
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	r := chi.NewRouter()
-	routes.SetUpRoutes(r, connection)
+	routes.SetUpRoutes(r, connection, logger)
 
 	srv := server.Server{}
 	go func() {

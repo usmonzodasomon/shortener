@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"github.com/usmonzodasomon/shortener/internal/config"
 	"log/slog"
 	"os"
 )
@@ -12,8 +11,8 @@ const (
 	envProd  = "prod"
 )
 
-func Logger(cfg config.Config) *slog.Logger {
-	switch cfg.Env {
+func Logger(env string) *slog.Logger {
+	switch env {
 	case envLocal:
 		opts := PrettyHandlerOptions{
 			SlogOpts: &slog.HandlerOptions{
