@@ -4,6 +4,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
+	"log/slog"
 	"net/http"
 )
 
@@ -14,11 +15,13 @@ type UrlServiceI interface {
 }
 
 type UrlController struct {
+	log     *slog.Logger
 	service UrlServiceI
 }
 
-func NewUrlController(service UrlServiceI) *UrlController {
+func NewUrlController(log *slog.Logger, service UrlServiceI) *UrlController {
 	return &UrlController{
+		log:     log,
 		service: service,
 	}
 }
@@ -30,14 +33,16 @@ type Url struct {
 func (c *UrlController) SaveURL(w http.ResponseWriter, r *http.Request) {
 	var url Url
 	if err := render.DecodeJSON(r.Body, &url); err != nil {
+		c.log.Warn("failed to decode request body", slog.String("error", err.Error()))
 		w.WriteHeader(http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
-			"error": err.Error(),
+			"error": "failed to decode request body",
 		})
 		return
 	}
 
 	if err := validator.New().Struct(url); err != nil {
+		c.log.Warn("invalid request body", slog.String("error", err.Error()))
 		w.WriteHeader(http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
 			"error": err.Error(),
@@ -47,6 +52,7 @@ func (c *UrlController) SaveURL(w http.ResponseWriter, r *http.Request) {
 
 	shortUrl, err := c.service.SaveURL(url.Url)
 	if err != nil {
+		c.log.Error("failed to save url", slog.String("error", err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
 			"error": err.Error(),
@@ -60,6 +66,7 @@ func (c *UrlController) SaveURL(w http.ResponseWriter, r *http.Request) {
 func (c *UrlController) GetURL(w http.ResponseWriter, r *http.Request) {
 	shortUrl := chi.URLParam(r, "shortUrl")
 	if shortUrl == "" {
+		c.log.Warn("short_url is required")
 		w.WriteHeader(http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
 			"error": "short_url is required",
@@ -69,6 +76,7 @@ func (c *UrlController) GetURL(w http.ResponseWriter, r *http.Request) {
 
 	url, err := c.service.GetURL(shortUrl)
 	if err != nil {
+		c.log.Warn("short_url not found", slog.String("error", err.Error()))
 		w.WriteHeader(http.StatusNotFound)
 		render.JSON(w, r, map[string]string{
 			"error": "short_url not found",
@@ -77,6 +85,7 @@ func (c *UrlController) GetURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.service.IncrementCount(shortUrl); err != nil {
+		c.log.Error("failed to increment count", slog.String("error", err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
 			"error": err.Error(),
