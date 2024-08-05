@@ -8,4 +8,5 @@ import (
 
 func SetUpRoutes(r *chi.Mux, db *sqlx.DB, logger *slog.Logger) {
 	urlRoutes(r, db, logger)
+	userRoutes(r, db, logger)
 }

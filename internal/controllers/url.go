@@ -45,7 +45,7 @@ func (c *UrlController) SaveURL(w http.ResponseWriter, r *http.Request) {
 		c.log.Warn("invalid request body", slog.String("error", err.Error()))
 		w.WriteHeader(http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
-			"error": err.Error(),
+			"error": "invalid request body",
 		})
 		return
 	}
@@ -55,7 +55,7 @@ func (c *UrlController) SaveURL(w http.ResponseWriter, r *http.Request) {
 		c.log.Error("failed to save url", slog.String("error", err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error": err.Error(),
+			"error": "failed to save url",
 		})
 		return
 	}
