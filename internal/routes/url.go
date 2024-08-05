@@ -6,12 +6,13 @@ import (
 	"github.com/usmonzodasomon/shortener/internal/controllers"
 	"github.com/usmonzodasomon/shortener/internal/repository"
 	"github.com/usmonzodasomon/shortener/internal/service"
+	"log/slog"
 )
 
-func urlRoutes(r *chi.Mux, db *sqlx.DB) {
+func urlRoutes(r *chi.Mux, db *sqlx.DB, logger *slog.Logger) {
 	urlRepo := repository.NewUrlRepository(db)
 	urlService := service.NewUrlService(urlRepo)
-	urlControllers := controllers.NewUrlController(urlService)
+	urlControllers := controllers.NewUrlController(logger, urlService)
 
 	r.Route("/url", func(r chi.Router) {
 		r.Post("/", urlControllers.SaveURL)
