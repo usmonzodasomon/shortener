@@ -4,6 +4,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
+	"html/template"
 	"log/slog"
 	"net/http"
 )
@@ -28,6 +29,16 @@ func NewUrlController(log *slog.Logger, service UrlServiceI) *UrlController {
 
 type Url struct {
 	Url string `json:"url" validate:"required,url"`
+}
+
+func (c *UrlController) AddURL(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("web/template/add_url.html")
+	if err != nil {
+		c.log.Error("failed to parse template", slog.String("error", err.Error()))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	tmpl.Execute(w, nil)
 }
 
 func (c *UrlController) SaveURL(w http.ResponseWriter, r *http.Request) {
