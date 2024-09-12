@@ -14,10 +14,7 @@ func urlRoutes(r *chi.Mux, db *sqlx.DB, logger *slog.Logger) {
 	urlService := service.NewUrlService(urlRepo)
 	urlControllers := controllers.NewUrlController(logger, urlService)
 
-	r.Get("/add", urlControllers.AddURL)
-	r.Route("/url", func(r chi.Router) {
-		r.Post("/", urlControllers.SaveURL)
-	})
+	r.Get("/", urlControllers.AddURL)
+	r.Post("/url", urlControllers.SaveURL)
 	r.Get("/{shortUrl}", urlControllers.GetURL)
-
 }
